@@ -53,7 +53,7 @@
   }
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-    catch (e) { flash("保存失败：浏览器存储已满或被禁用。请立即导出备份。"); }
+    catch (e) { flash("存不进去了：浏览器存储满了或被禁用。赶紧先存一份到电脑。"); }
   }
   function rec(id) {
     if (!state.items[id]) {
@@ -147,22 +147,22 @@ function mark(lv, cls) {
       .sort(function (a, b) { return (state.items[a.id].due < state.items[b.id].due ? -1 : 1); });
     due.slice(0, 6).forEach(function (i) {
       push({
-        kind: diffCount(i.id) > 0 ? "分歧重练" : "到期复习", item: i,
+      kind: diffCount(i.id) > 0 ? "和 AI 对不上" : "该复习了", item: i,
         why: diffCount(i.id) > 0
-          ? "这个知识点已累积 " + diffCount(i.id) + " 次判断分歧，优先重练。"
-          : "按间隔重复安排到期，今天该复述一遍。"
+          ? "这条你已经和 AI 对不上 " + diffCount(i.id) + " 次了，先重练它。"
+          : "到日子了，用你自己的话复述一遍就行。"
       });
     });
 
     var weak = coreItems().filter(function (i) { return lvOf(i.id) < 3; })
       .sort(function (a, b) { return lvOf(a.id) - lvOf(b.id); });
     weak.slice(0, 3).forEach(function (i) {
-      push({ kind: "主干必修", item: i, why: "主干模块当前 " + lvName(lvOf(i.id)) + "（" + lvOf(i.id) + " 级）。" + (i._mod.name) + " 是你的主攻方向。" });
+      push({ kind: "今天该练", item: i, why: (i._mod.name) + " 是你的主攻方向，这条现在还是「" + lvName(lvOf(i.id)) + "」。" });
     });
 
     var noEv = ALL.filter(function (i) { return lvOf(i.id) >= 3 && evidenceFor(i.id).length === 0; });
     noEv.slice(0, 2).forEach(function (i) {
-      push({ kind: "补证据", item: i, why: "等级已到 " + lvOf(i.id) + " 级但没有证据支撑，规则要求补上。" });
+      push({ kind: "补个作品", item: i, why: "已经到 " + lvOf(i.id) + " 级了，但还没有拿得出手的东西作证明，补一个。" });
     });
 
     var budget = Math.max(3, Math.min(8, Math.round(state.settings.dailyMinutes / 12)));
@@ -180,21 +180,21 @@ function mark(lv, cls) {
     var coreLv = coreItems().reduce(function (s, i) { return s + lvOf(i.id); }, 0);
 
     var html = '';
-    html += '<div class="view-head"><h2>今日</h2><p class="note">' + esc(st.stage.name) + '阶段（' + esc(st.stage.months) + '）。' +
+    html += '<div class="view-head"><h2>今日</h2><p class="note">现在是第 ' + (C.stages.indexOf(st.stage) + 1) + ' 阶段「' + esc(st.stage.name) + '」（' + esc(st.stage.months) + '）。' +
       esc(st.stage.daily) + '</p></div>';
 
     if (!state.exportedAt || daysBetween(state.exportedAt.slice(0, 10), todayISO()) >= 14) {
-      html += '<div style="padding-top:16px"><div class="notice"><span><b>该备份了。</b>进度只存在这台电脑的浏览器里，清缓存就会丢。' +
-        (state.exportedAt ? '上次导出：' + esc(state.exportedAt.slice(0, 10)) + '。' : '还没有导出过。') +
-        '</span><button class="btn" data-act="export">导出进度文件</button></div></div>';
+      html += '<div style="padding-top:16px"><div class="notice"><span><b>该存一份了。</b>你的进度只存在这个浏览器里，清一下缓存就没了。' +
+        (state.exportedAt ? '上次存档：' + esc(state.exportedAt.slice(0, 10)) + '。' : '还没存过。') +
+        '</span><button class="btn" data-act="export">存一份到电脑</button></div></div>';
     }
 
     html += '<div class="cols" style="padding-top:22px">';
-    html += '<div><div class="view-head" style="padding-top:0;border-bottom:1px solid var(--ink)"><h2 style="font-size:17px">今天的清单</h2>' +
-      '<span class="code">' + tasks.length + ' 项 · 已完成 ' + doneToday + '</span></div>';
+    html += '<div><div class="view-head" style="padding-top:0;border-bottom:1px solid var(--ink)"><h2 style="font-size:17px">今天要做的</h2>' +
+      '<span class="code">共 ' + tasks.length + ' 条 · 已完成 ' + doneToday + '</span></div>';
     if (!tasks.length) {
-      html += '<div class="empty" style="margin-top:16px"><h3>今天没有排定任务</h3>' +
-        '<p>可能是所有到期项都已处理，且主干模块都已到 3 级。可以主动挑一个知识点练习，或去能力矩阵调整你的等级。</p></div>';
+      html += '<div class="empty" style="margin-top:16px"><h3>今天没有要做的</h3>' +
+        '<p>该复习的都练完了，主攻方向也都过了 3 级。你可以自己挑一条来练，或者去「能力清单」里调整等级。</p></div>';
     } else {
       html += '<div class="list" style="margin-top:0">';
       tasks.forEach(function (t, idx) {
@@ -205,12 +205,12 @@ function mark(lv, cls) {
     html += '</div>';
 
     html += '<aside style="padding-top:0">';
-    html += panel("进度概览", [
-      stat("当前阶段", st.stage.name + " · 第 " + st.month + " 个月"),
-      stat("总等级", lvSum + " / " + (ALL.length * 5), "全部 " + ALL.length + " 个知识点"),
-      stat("主干等级", coreLv + " / " + (coreItems().length * 5), "设计 + 工艺"),
-      stat("闸门次数", totalGate, "判断分歧 " + totalDiff + " 次"),
-      stat("证据数", state.evidence.length, "支撑 " + ALL.filter(function (i) { return evidenceFor(i.id).length > 0; }).length + " 个知识点")
+    html += panel("我的进度", [
+      stat("现在在哪", st.stage.name + " · 第 " + st.month + " 个月"),
+      stat("全部等级", lvSum + " / " + (ALL.length * 5), "共 " + ALL.length + " 条"),
+      stat("设计与工艺", coreLv + " / " + (coreItems().length * 5), "你的主攻方向"),
+      stat("练习次数", totalGate, "和 AI 对不上 " + totalDiff + " 次"),
+      stat("作品数", state.evidence.length, "能证明 " + ALL.filter(function (i) { return evidenceFor(i.id).length > 0; }).length + " 条")
     ]);
     html += panelLegend();
     html += '</aside></div>';
@@ -227,8 +227,8 @@ function mark(lv, cls) {
       '<span class="code" style="margin-left:auto">' + mark(lv) + ' ' + lv + ' 级</span>' +
       '</div>' +
       '<p class="sub" style="font-size:13px;color:var(--ink-2);margin-top:8px">' + esc(t.why) + '</p>' +
-      '<div style="margin-top:12px"><button class="btn primary" data-act="open-gate" data-id="' + esc(t.item.id) + '">开始手动闸门</button> ' +
-      '<button class="btn ghost" data-act="open-item" data-id="' + esc(t.item.id) + '">查看知识点</button></div>' +
+      '<div style="margin-top:12px"><button class="btn primary" data-act="open-gate" data-id="' + esc(t.item.id) + '">开始做题</button> ' +
+      '<button class="btn ghost" data-act="open-item" data-id="' + esc(t.item.id) + '">先看看这条是什么</button></div>' +
       '<div class="gate-slot" data-slot="' + esc(t.item.id) + '"></div>' +
       '</article>';
   }
@@ -241,12 +241,12 @@ function mark(lv, cls) {
     return '<div class="stat"><dt>' + esc(k) + '</dt><dd>' + esc(v) + (sub ? '<span style="font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-left:8px">' + esc(sub) + '</span>' : "") + '</dd></div>';
   }
   function panelLegend() {
-    return '<div class="panel"><div class="panel-h"><h3>状态记号</h3><span class="code">线形编码</span></div><div class="panel-b">' +
-      '<div class="tagline" style="margin-bottom:8px"><u class="solid"></u>实线：已达标，在巩固</div>' +
-      '<div class="tagline" style="margin-bottom:8px"><u class="dash"></u>虚线：待复习</div>' +
-      '<div class="tagline" style="margin-bottom:8px"><u class="short" style="border-top-color:var(--seal)"></u>点线（朱红）：有判断分歧</div>' +
-      '<div class="tagline" style="margin-bottom:8px"><u class="dbl"></u>双线：已达 5 级</div>' +
-      '<div class="tagline"><u class="blank"></u>空白：未开始</div>' +
+    return '<div class="panel"><div class="panel-h"><h3>标记怎么看</h3><span class="code">看线的样子</span></div><div class="panel-b">' +
+      '<div class="tagline" style="margin-bottom:8px"><u class="solid"></u>实线：已经会了</div>' +
+      '<div class="tagline" style="margin-bottom:8px"><u class="dash"></u>虚线：该复习了</div>' +
+      '<div class="tagline" style="margin-bottom:8px"><u class="short" style="border-top-color:var(--seal)"></u>红点线：和 AI 对不上</div>' +
+      '<div class="tagline" style="margin-bottom:8px"><u class="dbl"></u>双线：最熟的一档</div>' +
+      '<div class="tagline"><u class="blank"></u>空白：还没开始</div>' +
       '</div></div>';
   }
 
@@ -260,37 +260,37 @@ function mark(lv, cls) {
 
     slot.innerHTML =
       '<div class="gate">' +
-        '<div class="gate-h"><strong>手动闸门 · 先自己判断，再看 AI</strong>' +
-          '<span class="sealmark">' + (hist.length ? "历史 " + hist.length + " 次 · 分歧 " + diffs + " 次" : "首次练习") + '</span>' +
+        '<div class="gate-h"><strong>先自己写，再看 AI 怎么说</strong>' +
+          '<span class="sealmark">' + (hist.length ? "练过 " + hist.length + " 次 · 对不上 " + diffs + " 次" : "第一次练") + '</span>' +
         '</div>' +
         '<div class="gate-q"><p class="q">' + esc(it.gate) + '</p>' +
-          '<p class="hint">不许查资料、不许问 AI。写下你的判断和依据，哪怕不确定也要写清「哪里不确定」。</p></div>' +
+          '<p class="hint">别查资料、别问 AI。写下你的答案和理由；不确定就写清你不确定什么。</p></div>' +
         '<div class="gate-input">' +
-          '<label for="ans-' + esc(id) + '" style="font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px">你的判断</label>' +
-          '<textarea id="ans-' + esc(id) + '" data-ans="' + esc(id) + '" placeholder="先写结论，再写依据，最后写你不确定的地方。"></textarea>' +
+          '<label for="ans-' + esc(id) + '" style="font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px">我的答案</label>' +
+          '<textarea id="ans-' + esc(id) + '" data-ans="' + esc(id) + '" placeholder="先写结论，再写理由，最后写你不确定的地方。"></textarea>' +
           '<div class="gate-actions">' +
-            '<button class="btn primary" data-act="unseal" data-id="' + esc(id) + '" disabled>拆封 AI 对照</button>' +
-            '<span class="why" data-why="' + esc(id) + '">至少写 20 个字才能拆封</span>' +
+            '<button class="btn primary" data-act="unseal" data-id="' + esc(id) + '" disabled>打开看 AI 答案</button>' +
+            '<span class="why" data-why="' + esc(id) + '">写满 20 个字才能打开</span>' +
           '</div>' +
         '</div>' +
         '<div class="seal-wrap" data-seal="' + esc(id) + '">' +
-          '<div class="seal-cover"><p>AI 对照被封在这里。先写下你的判断。</p></div>' +
+          '<div class="seal-cover"><p>AI 的答案在这里面。先写完你自己的，再打开。</p></div>' +
           '<div class="seal-body">' +
             '<table class="compare">' +
-              '<tr><th>拆封后要做的事</th><th>内容</th></tr>' +
-              '<tr><td>问 AI</td><td><pre>' + esc(it.probe) + '</pre>' +
-                '<div style="margin-top:8px"><button class="btn tiny" data-act="copy" data-copy="' + esc(it.probe) + '">复制这段提示词</button></div></td></tr>' +
-              '<tr><td>合格线（3 级）</td><td>' + esc(it.l3) + '</td></tr>' +
-              '<tr><td>资深线（5 级）</td><td>' + esc(it.l5) + '</td></tr>' +
-              '<tr><td>依据</td><td>' + esc(it.ref) + '</td></tr>' +
+              '<tr><th>打开后做这些</th><th>内容</th></tr>' +
+              '<tr><td>去问 AI</td><td><pre>' + esc(it.probe) + '</pre>' +
+                '<div style="margin-top:8px"><button class="btn tiny" data-act="copy" data-copy="' + esc(it.probe) + '">复制</button></div></td></tr>' +
+              '<tr><td>做到这样算会了（3 级）</td><td>' + esc(it.l3) + '</td></tr>' +
+              '<tr><td>做到这样算很懂了（5 级）</td><td>' + esc(it.l5) + '</td></tr>' +
+              '<tr><td>出处</td><td>' + esc(it.ref) + '</td></tr>' +
             '</table>' +
-            '<p class="hint" style="margin-top:12px">把 AI 的答案和你的判断逐条对照。不一致的地方，才是你真正要补的地方。</p>' +
+            '<p class="hint" style="margin-top:12px">一条一条比。对不上的地方，才是你真正要补的。</p>' +
             '<div class="verdict">' +
-              '<button class="btn" data-act="verdict" data-id="' + esc(id) + '" data-v="same">基本一致</button>' +
-              '<button class="btn" data-act="verdict" data-id="' + esc(id) + '" data-v="partial">部分一致</button>' +
-              '<button class="btn diff" data-act="verdict" data-id="' + esc(id) + '" data-v="diff">明显不一致</button>' +
+              '<button class="btn" data-act="verdict" data-id="' + esc(id) + '" data-v="same">基本对上了</button>' +
+              '<button class="btn" data-act="verdict" data-id="' + esc(id) + '" data-v="partial">对了一半</button>' +
+              '<button class="btn diff" data-act="verdict" data-id="' + esc(id) + '" data-v="diff">差得比较远</button>' +
             '</div>' +
-            '<div style="margin-top:12px"><label class="help" style="font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px">分歧点记下来（选填，但记了才会变成你的清单）</label>' +
+            '<div style="margin-top:12px"><label class="help" style="font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px">哪里对不上？（可以不写，写了才会进复习清单）</label>' +
             '<textarea data-note="' + esc(id) + '" style="min-height:64px" placeholder="哪里不一致？正确的是什么？"></textarea></div>' +
           '</div>' +
         '</div>' +
@@ -302,7 +302,7 @@ function mark(lv, cls) {
     ta.addEventListener("input", function () {
       var n = ta.value.trim().length;
       btn.disabled = n < 20;
-      why.textContent = n < 20 ? ("至少写 20 个字才能拆封（现在 " + n + " 字）") : "可以拆封了。";
+      why.textContent = n < 20 ? ("还差 " + (20 - n) + " 个字才能打开") : "可以打开了。";
     });
     ta.focus();
     slot.scrollIntoView({ block: "nearest" });
@@ -326,14 +326,18 @@ function mark(lv, cls) {
     var r = schedule(id, verdict);
     state.done[id] = todayISO();
     save();
-    var msg = { same: "已记录：基本一致。下次复习 " + r.due + "。", partial: "已记录：部分一致，缩短到 " + r.interval + " 天后重练。", diff: "已记录分歧，明天重练。" }[verdict];
+    var msg = {
+      same: "记下了。下次复习：" + r.due + "。",
+      partial: "记下了。对了一半，过 " + r.interval + " 天再练一次。",
+      diff: "记下了。明天再练一次。"
+    }[verdict];
     if (slot) {
       var box = document.createElement("div");
       box.className = "notice";
       box.style.marginTop = "14px";
       var canUp = verdict === "same" && r.lv < 5;
-      box.innerHTML = '<span><b>' + esc(msg) + '</b>' + (canUp ? ' 如果要升级，请在能力矩阵里填写依据。' : "") + '</span>' +
-        '<button class="btn" data-act="close-gate" data-id="' + esc(id) + '">收起</button>';
+      box.innerHTML = '<span><b>' + esc(msg) + '</b>' + (canUp ? ' 想升级的话，去「能力清单」里填个理由。' : "") + '</span>' +
+        '<button class="btn" data-act="close-gate" data-id="' + esc(id) + '">关掉</button>';
       slot.appendChild(box);
     }
     refresh();
@@ -361,7 +365,7 @@ function mark(lv, cls) {
       if (!items.length) return;
       var avg = m.items.reduce(function (s, i) { return s + lvOf(i.id); }, 0) / m.items.length;
       rows += '<tr class="mod"><th colspan="6">' + esc(m.name) + ' · ' + esc(m.en) +
-        '<small>' + esc(m.code) + ' · ' + m.items.length + ' 项 · 均值 ' + avg.toFixed(2) + (m.depth === "core" ? ' · 主干' : ' · 支撑') + '</small></th></tr>';
+        '<small>' + esc(m.code) + ' · ' + m.items.length + ' 条 · 平均 ' + avg.toFixed(2) + (m.depth === "core" ? ' · 主攻' : ' · 辅助') + '</small></th></tr>';
       items.forEach(function (it) {
         var lv = lvOf(it.id);
         var r = state.items[it.id] || { due: null };
@@ -370,32 +374,32 @@ function mark(lv, cls) {
         rows += '<tr><td class="num">' + esc(it.id) + '</td>' +
           '<td><b style="font-weight:600">' + esc(it.name) + '</b><div class="en" style="font-family:var(--mono);font-size:11px;color:var(--ink-3)">' + esc(it.en) + '</div></td>' +
           '<td class="num">' + mark(lv) + ' <span style="margin-left:6px">' + lv + '</span></td>' +
-          '<td class="num">' + (r.due ? esc(r.due) : "—") + (isDue(it.id) ? ' <span style="color:var(--seal)">到期</span>' : "") + '</td>' +
-          '<td class="num">' + ev + (d ? ' <span style="color:var(--seal)">分歧 ' + d + '</span>' : "") + '</td>' +
+          '<td class="num">' + (r.due ? esc(r.due) : "—") + (isDue(it.id) ? ' <span style="color:var(--seal)">该复习</span>' : "") + '</td>' +
+          '<td class="num">' + ev + (d ? ' <span style="color:var(--seal)">对不上 ' + d + '</span>' : "") + '</td>' +
           '<td class="act"><button class="btn tiny" data-act="open-item" data-id="' + esc(it.id) + '">打开</button></td></tr>';
         rows += '<tr hidden data-detail-row="' + esc(it.id) + '"><td colspan="6" style="background:var(--paper-2)">' +
           '<div data-detail="' + esc(it.id) + '"></div></td></tr>';
       });
     });
-    if (!rows) rows = '<tr><td colspan="6" style="padding:26px;color:var(--ink-2)">没有符合条件的知识点。</td></tr>';
+    if (!rows) rows = '<tr><td colspan="6" style="padding:26px;color:var(--ink-2)">没有符合条件的。</td></tr>';
 
     $("#view-matrix").innerHTML =
-      '<div class="view-head"><h2>能力矩阵</h2><p class="note">等级不是感觉，是行为。升级必须填写依据：要么关联一条证据，要么写清你凭什么。</p></div>' +
+      '<div class="view-head"><h2>能力清单</h2><p class="note">等级看你做出来过什么，不看你觉得会不会。想升级，要么挂一个作品，要么写清楚你凭什么。</p></div>' +
       '<div class="filters">' +
         '<label>模块 <select data-f="mod"><option value="all">全部</option>' +
           C.modules.map(function (m) { return '<option value="' + m.code + '"' + (mFilter.mod === m.code ? " selected" : "") + '>' + esc(m.name) + '</option>'; }).join("") +
         '</select></label>' +
         '<label>等级 <select data-f="lv">' +
-          ["all:全部", "low:0–2 级（待补）", "mid:3–4 级（独立与判错）", "high:5 级", "nodata:今天到期"].map(function (o) {
+          ["all:全部", "low:0–2 级（还没上手）", "mid:3–4 级（能自己做、能发现错）", "high:5 级（最熟）", "nodata:今天该复习"].map(function (o) {
             var v = o.split(":")[0];
             return '<option value="' + v + '"' + (mFilter.lv === v ? " selected" : "") + '>' + esc(o.split(":")[1]) + '</option>';
           }).join("") +
         '</select></label>' +
         '<label>搜索 <input type="search" data-f="q" value="' + esc(mFilter.q) + '" placeholder="名称、编号、英文"></label>' +
-        '<span class="code" style="margin-left:auto">共 ' + ALL.length + ' 个知识点</span>' +
+        '<span class="code" style="margin-left:auto">共 ' + ALL.length + ' 条</span>' +
       '</div>' +
       '<div class="tablewrap"><table class="grid"><thead><tr>' +
-        '<th>编号</th><th>知识点</th><th>等级</th><th>下次复习</th><th>证据 / 分歧</th><th style="text-align:right">操作</th>' +
+        '<th>编号</th><th>练什么</th><th>等级</th><th>下次复习</th><th>作品 / 对不上</th><th style="text-align:right">操作</th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -422,24 +426,24 @@ function mark(lv, cls) {
         '<div class="panel-b">' +
           '<p style="font-size:14px;color:var(--ink-2);max-width:68ch">' + esc(it.why) + '</p>' +
           '<table class="compare" style="margin-top:14px">' +
-            '<tr><td>3 级</td><td>' + esc(it.l3) + '</td></tr>' +
-            '<tr><td>5 级</td><td>' + esc(it.l5) + '</td></tr>' +
-            '<tr><td>依据</td><td>' + esc(it.ref) + '</td></tr>' +
-            (hist.length ? '<tr><td>最近判断</td><td>' + esc(new Date(hist[hist.length - 1].at).toLocaleDateString("zh-CN")) + ' · ' +
-              (hist[hist.length - 1].verdict === "same" ? "基本一致" : hist[hist.length - 1].verdict === "partial" ? "部分一致" : "明显不一致") +
+            '<tr><td>会做了（3 级）</td><td>' + esc(it.l3) + '</td></tr>' +
+            '<tr><td>很懂了（5 级）</td><td>' + esc(it.l5) + '</td></tr>' +
+            '<tr><td>出处</td><td>' + esc(it.ref) + '</td></tr>' +
+            (hist.length ? '<tr><td>上次练</td><td>' + esc(new Date(hist[hist.length - 1].at).toLocaleDateString("zh-CN")) + ' · ' +
+              (hist[hist.length - 1].verdict === "same" ? "基本对上了" : hist[hist.length - 1].verdict === "partial" ? "对了一半" : "差得比较远") +
               (hist[hist.length - 1].note ? "：" + esc(hist[hist.length - 1].note) : "") + '</td></tr>' : '') +
           '</table>' +
           '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center">' +
-            '<button class="btn primary" data-act="gate-here" data-id="' + esc(id) + '">做手动闸门练习</button>' +
-            '<button class="btn" data-act="add-evidence" data-id="' + esc(id) + '">记一条证据</button>' +
-            '<span class="code">' + (evs.length ? "已关联 " + evs.length + " 条证据" : "尚无证据") + '</span>' +
+            '<button class="btn primary" data-act="gate-here" data-id="' + esc(id) + '">做一道题</button>' +
+            '<button class="btn" data-act="add-evidence" data-id="' + esc(id) + '">加一个作品</button>' +
+            '<span class="code">' + (evs.length ? "挂了 " + evs.length + " 个作品" : "还没挂作品") + '</span>' +
           '</div>' +
           '<div style="margin-top:18px;border-top:1px solid var(--rule);padding-top:14px">' +
-            '<div class="field"><label for="lv-' + esc(id) + '">调整等级（必须填写依据）</label>' +
+            '<div class="field"><label for="lv-' + esc(id) + '">改等级</label>' +
             '<div class="field-row"><select id="lv-' + esc(id) + '" data-lvsel="' + esc(id) + '">' + lvOpts + '</select>' +
-            '<input type="text" data-lvbasis="' + esc(id) + '" value="' + esc(r.basis || "") + '" placeholder="依据：证据编号、项目、或你凭什么"></div>' +
-            '<span class="help">规则：升到 3 级以上时，如果没有任何关联证据，依据栏必须写清楚。空着不给升。</span></div>' +
-            '<button class="btn" data-act="set-lv" data-id="' + esc(id) + '">保存等级</button>' +
+            '<input type="text" data-lvbasis="' + esc(id) + '" value="' + esc(r.basis || "") + '" placeholder="凭什么：作品名、项目、或你做过什么"></div>' +
+            '<span class="help">规矩：升到 3 级以上，如果没挂作品，这一栏必须写清楚。空着不给升。</span></div>' +
+            '<button class="btn" data-act="set-lv" data-id="' + esc(id) + '">保存</button>' +
           '</div>' +
           '<div data-gate-host="' + esc(id) + '" style="margin-top:14px"></div>' +
         '</div>' +
@@ -454,7 +458,7 @@ function mark(lv, cls) {
     var r = rec(id);
     var hasEv = evidenceFor(id).length > 0;
     if (lv > r.lv && lv >= 3 && !hasEv && !basis.value.trim()) {
-      flash("等级没有动。升到 3 级以上需要一条证据，或者在依据栏写清你凭什么。");
+      flash("等级没变。升到 3 级以上，得挂一个作品，或者写清楚你凭什么。");
       basis.focus();
       return;
     }
@@ -462,7 +466,7 @@ function mark(lv, cls) {
     r.basis = basis.value.trim();
     if (!r.due && lv > 0) r.due = todayISO();
     save();
-    flash("已记录：" + BY_ID[id].name + " → " + lv + " 级（" + lvName(lv) + "）。");
+    flash("记下了：" + BY_ID[id].name + " → " + lv + " 级（" + lvName(lv) + "）。");
     refresh();
   }
 
@@ -481,29 +485,29 @@ function mark(lv, cls) {
     var elapsedMonths = Math.floor(daysBetween(state.settings.startDate, todayISO()) / 30.44) + 1;
 
     var html = '<div class="view-head"><h2>24 个月路线</h2><p class="note">' +
-      '主干 = 设计工程与制造工艺共 ' + core.length + ' 个知识点。阶段门槛按主干等级计算，不按学习时长计算。' +
-      '你已进入第 ' + Math.min(24, elapsedMonths) + ' 个月。</p></div>';
+      '设计与工艺共 ' + core.length + ' 条，是你的主攻方向。能不能进下一阶段，看这 ' + core.length + ' 条的等级，不看学了多久。' +
+      '你现在在第 ' + Math.min(24, elapsedMonths) + ' 个月。</p></div>';
 
-    html += '<div class="panel" style="margin-top:22px"><div class="panel-h"><h3>主干门槛达成情况</h3><span class="code">实时计算</span></div><div class="panel-b">' +
+    html += '<div class="panel" style="margin-top:22px"><div class="panel-h"><h3>能不能进下一阶段</h3><span class="code">现在的情况</span></div><div class="panel-b">' +
       '<dl style="margin:0">' +
       checks.map(function (c) {
-        return '<div class="stat"><dt>主干达到 ' + c.max + ' 级及以上的比例</dt><dd>' + c.pct + '%' +
-          '<span style="font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-left:8px">阶段门槛 ' + c.need + '%</span></dd></div>';
+        return '<div class="stat"><dt>' + c.max + ' 级以上的比例</dt><dd>' + c.pct + '%' +
+          '<span style="font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-left:8px">要求 ' + c.need + '%</span></dd></div>';
       }).join("") + '</dl></div></div>';
 
     C.stages.forEach(function (s, i) {
       var isNow = s.id === st.stage.id;
       html += '<section class="stage">' +
         '<div class="stage-h"><h3>' + esc(s.name) + '</h3><span class="span">' + esc(s.months) + ' · 约 ' + s.weeks + ' 周</span>' +
-        '<span class="state">' + (isNow ? "当前阶段" : (i < C.stages.indexOf(st.stage) ? "已完成或已通过" : "未开始")) + '</span></div>' +
+        '<span class="state">' + (isNow ? "你在这里" : (i < C.stages.indexOf(st.stage) ? "已经走过" : "还没到")) + '</span></div>' +
         '<div class="stage-goal">' +
-          '<div><h4>准入门槛</h4><ul>' + s.entry.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' +
-          '<div><h4>毕业门槛</h4><ul>' + s.exit.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' +
-          '<div><h4>节奏</h4><ul><li>' + esc(s.daily) + '</li><li>' + esc(s.weekly) + '</li></ul></div>' +
+          '<div><h4>开始这一阶段前</h4><ul>' + s.entry.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' +
+          '<div><h4>这一阶段结束时</h4><ul>' + s.exit.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' +
+          '<div><h4>怎么练</h4><ul><li>' + esc(s.daily) + '</li><li>' + esc(s.weekly) + '</li></ul></div>' +
         '</div></section>';
     });
 
-    html += '<div class="panel"><div class="panel-h"><h3>等级阶梯（0–5）</h3><span class="code">全模块共用</span></div><div class="panel-b">' +
+    html += '<div class="panel"><div class="panel-h"><h3>等级怎么算</h3><span class="code">所有模块共用</span></div><div class="panel-b">' +
       '<table class="compare">' + C.ladder.map(function (l) {
         return '<tr><td>' + l.lv + ' 级 · ' + esc(l.name) + '</td><td>' + esc(l.def) + '</td></tr>';
       }).join("") + '</table></div></div>';
@@ -516,13 +520,13 @@ function mark(lv, cls) {
     var list = state.evidence.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     var opts = ALL.map(function (i) { return '<option value="' + esc(i.id) + '">' + esc(i.id + " · " + i.name) + '</option>'; }).join("");
 
-    var html = '<div class="view-head"><h2>证据库</h2><p class="note">' +
-      '一份图纸、一次计算书、一次拆机报告、一次失效分析都算证据。等级只有挂上证据才算真的。</p></div>';
+    var html = '<div class="view-head"><h2>作品与记录</h2><p class="note">' +
+      '一张图纸、一份计算书、一次拆机记录、一次失效分析，都算。等级只有挂了作品才算数。</p></div>';
 
     html += '<div class="cols" style="padding-top:22px"><div>';
     if (!list.length) {
-      html += '<div class="empty"><h3>还没有证据</h3><p>先补上你已有的东西——手里的课程设计、拆机记录、实习日志都算。三条就够启动。</p>' +
-        '<ol><li>打开能力矩阵，找到你确实会做的知识点</li><li>点「记一条证据」，写清它是什么、在哪、证明了什么</li><li>再把等级调上去，工作量会小很多</li></ol></div>';
+      html += '<div class="empty"><h3>还什么都没有</h3><p>先把手头已经有的东西放进来——课程设计、拆机记录、实习日志，都算。三条就够启动。</p>' +
+        '<ol><li>去「能力清单」，找到你确实会做的那些</li><li>点「加一个作品」，写清它是什么、放在哪、能证明什么</li><li>再把等级调上去，就不用写理由了</li></ol></div>';
     } else {
       html += '<div style="border-top:1px solid var(--rule)">';
       list.forEach(function (e) {
@@ -530,24 +534,24 @@ function mark(lv, cls) {
           '<div class="meta">' + esc(e.date) + ' · ' + esc(e.kind) + '</div>' +
           (e.desc ? '<p class="desc">' + esc(e.desc) + '</p>' : "") +
           '<div class="chips">' + (e.itemIds || []).map(function (id) { return '<span class="chip">' + esc(id) + '</span>'; }).join("") + '</div>' +
-          '<div style="margin-top:10px"><button class="btn tiny" data-act="del-evidence" data-id="' + esc(e.id) + '">删除</button></div>' +
+          '<div style="margin-top:10px"><button class="btn tiny" data-act="del-evidence" data-id="' + esc(e.id) + '">删掉</button></div>' +
           '</article>';
       });
       html += '</div>';
     }
     html += '</div><aside>';
-    html += '<div class="panel"><div class="panel-h"><h3>新增证据</h3></div><div class="panel-b">' +
-      '<div class="field"><label for="ev-title">它是什么</label><input id="ev-title" placeholder="例：减速箱拆机报告"></div>' +
+    html += '<div class="panel"><div class="panel-h"><h3>加一个作品</h3></div><div class="panel-b">' +
+      '<div class="field"><label for="ev-title">这是什么</label><input id="ev-title" placeholder="例：减速箱拆机记录"></div>' +
       '<div class="field-row">' +
         '<div class="field"><label for="ev-kind">类型</label><select id="ev-kind">' +
           ["图纸/模型", "计算书", "工艺文件", "拆机报告", "失效分析", "试验记录", "项目成品", "实习记录", "其他"].map(function (k) { return '<option>' + k + '</option>'; }).join("") +
         '</select></div>' +
         '<div class="field"><label for="ev-date">日期</label><input id="ev-date" type="date" value="' + todayISO() + '"></div>' +
       '</div>' +
-      '<div class="field"><label for="ev-desc">它证明了什么（选填）</label><textarea id="ev-desc" placeholder="一句话：这份东西能证明我能做哪一件事。"></textarea></div>' +
-      '<div class="field"><label for="ev-items">关联知识点（按住 Ctrl 多选）</label><select id="ev-items" multiple size="7" style="font-size:13px">' + opts + '</select>' +
-        '<span class="help">选 1–5 个最贴切的就行，不要全选。</span></div>' +
-      '<button class="btn primary" data-act="add-ev">保存证据</button>' +
+      '<div class="field"><label for="ev-desc">它能证明你会做什么（选填）</label><textarea id="ev-desc" placeholder="一句话：这份东西能证明我做得了哪件事。"></textarea></div>' +
+      '<div class="field"><label for="ev-items">挂到哪几条上（按住 Ctrl 多选）</label><select id="ev-items" multiple size="7" style="font-size:13px">' + opts + '</select>' +
+        '<span class="help">选 1–5 条最贴切的就行，别全选。</span></div>' +
+      '<button class="btn primary" data-act="add-ev">保存</button>' +
       '</div></div></aside></div>';
     $("#view-evidence").innerHTML = html;
   }
@@ -557,43 +561,43 @@ function mark(lv, cls) {
     var bytes = 0;
     try { bytes = (localStorage.getItem(STORE_KEY) || "").length; } catch (e) { bytes = -1; }
     var html = '<div class="view-head"><h2>数据与备份</h2><p class="note">' +
-      '进度保存在这台电脑的浏览器里（localStorage）。换电脑、清缓存、重装浏览器都会丢，所以导出不是可选项。</p></div>';
+      '你的进度存在这个浏览器里。换电脑、清缓存、重装浏览器都会丢，所以存一份不是可选项。</p></div>';
 
     html += '<div class="cols" style="padding-top:22px"><div>';
-    html += '<div class="panel"><div class="panel-h"><h3>导出与导入</h3><span class="code">JSON</span></div><div class="panel-b">' +
-      '<p style="font-size:14px;color:var(--ink-2);max-width:66ch">导出的文件包含全部等级、复习排期、证据、闸门记录与判断分歧，可以随时导入回任何一台电脑。</p>' +
+    html += '<div class="panel"><div class="panel-h"><h3>存一份 / 搬走</h3><span class="code">JSON</span></div><div class="panel-b">' +
+      '<p style="font-size:14px;color:var(--ink-2);max-width:66ch">存下来的文件里是全部等级、复习安排、作品和练习记录，拿到任何一台电脑都能装回去。</p>' +
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">' +
-        '<button class="btn primary" data-act="export">导出进度（JSON）</button>' +
-        '<button class="btn" data-act="import">导入进度（JSON）</button>' +
-        '<button class="btn" data-act="export-md">导出学习报告（Markdown）</button>' +
+        '<button class="btn primary" data-act="export">存一份到电脑</button>' +
+        '<button class="btn" data-act="import">从存档装回来</button>' +
+        '<button class="btn" data-act="export-md">导出一份文字报告</button>' +
       '</div>' +
       '<input type="file" id="fileInput" accept="application/json,.json" hidden>' +
-      '<div class="field" style="margin-top:18px"><label>导入策略</label>' +
-        '<select id="importMode"><option value="merge">合并：保留现有记录，按时间取较新的</option><option value="replace">覆盖：用文件完全替换当前进度</option></select></div>' +
+        '<div class="field" style="margin-top:18px"><label>装回来的时候</label>' +
+          '<select id="importMode"><option value="merge">两份合起来：留着现在的，按时间取新的</option><option value="replace">用文件里的全部替换掉现在这份</option></select></div>' +
       '</div></div>';
 
-    html += '<div class="panel"><div class="panel-h"><h3>学习节奏</h3></div><div class="panel-b">' +
+    html += '<div class="panel"><div class="panel-h"><h3>每天练多久</h3></div><div class="panel-b">' +
       '<div class="field-row">' +
-        '<div class="field"><label for="set-min">每天计划投入（分钟）</label><input id="set-min" type="number" min="20" max="240" step="5" value="' + state.settings.dailyMinutes + '"><span class="help">决定今日清单排几项。</span></div>' +
-        '<div class="field"><label for="set-start">起始日期</label><input id="set-start" type="date" value="' + esc(state.settings.startDate) + '"><span class="help">路线按这个日期算第几个月。</span></div>' +
+        '<div class="field"><label for="set-min">每天打算练多久（分钟）</label><input id="set-min" type="number" min="20" max="240" step="5" value="' + state.settings.dailyMinutes + '"><span class="help">决定「今日」里排几条。</span></div>' +
+        '<div class="field"><label for="set-start">从哪天开始算</label><input id="set-start" type="date" value="' + esc(state.settings.startDate) + '"><span class="help">路线按这个日期算你现在第几个月。</span></div>' +
       '</div>' +
       '<button class="btn" data-act="save-settings">保存</button>' +
       '</div></div>';
 
-    html += '<div class="panel"><div class="panel-h"><h3>危险操作</h3></div><div class="panel-b">' +
-      '<p style="font-size:14px;color:var(--ink-2);max-width:66ch">清空会删掉全部等级、证据与闸门记录，且不可恢复。清空前请先导出。</p>' +
-      '<button class="btn seal" style="margin-top:12px" data-act="reset">清空全部进度</button>' +
+    html += '<div class="panel"><div class="panel-h"><h3>小心操作</h3></div><div class="panel-b">' +
+      '<p style="font-size:14px;color:var(--ink-2);max-width:66ch">清空会删掉全部等级、作品和练习记录，删了就找不回来。清空之前先存一份。</p>' +
+      '<button class="btn seal" style="margin-top:12px" data-act="reset">清空所有进度</button>' +
       '</div></div>';
     html += '</div><aside>';
-    html += panel("存储状态", [
-      stat("已开始的知识点", ALL.filter(function (i) { return lvOf(i.id) > 0; }).length, "共 " + ALL.length + " 项"),
-      stat("闸门记录", state.gates.length),
-      stat("证据", state.evidence.length),
-      stat("占用大小", bytes < 0 ? "不可用" : (Math.max(1, Math.round(bytes / 1024)) + " KB")),
-      stat("上次导出", state.exportedAt ? state.exportedAt.slice(0, 10) : "从未")
+    html += panel("存档信息", [
+      stat("已经开始练的", ALL.filter(function (i) { return lvOf(i.id) > 0; }).length, "共 " + ALL.length + " 条"),
+      stat("练习记录", state.gates.length),
+      stat("作品", state.evidence.length),
+      stat("占用大小", bytes < 0 ? "读不到" : (Math.max(1, Math.round(bytes / 1024)) + " KB")),
+      stat("上次存档", state.exportedAt ? state.exportedAt.slice(0, 10) : "从来没存过")
     ]);
-    html += '<div class="panel"><div class="panel-h"><h3>导入导出格式</h3></div><div class="panel-b">' +
-      '<p style="font-size:13px;color:var(--ink-2)">JSON 文件带版本号（schema ' + SCHEMA + '）。Markdown 报告面向人阅读，便于贴进简历或存档，不能导入。</p>' +
+    html += '<div class="panel"><div class="panel-h"><h3>关于这两种文件</h3></div><div class="panel-b">' +
+      '<p style="font-size:13px;color:var(--ink-2)">JSON 是给机器读的存档，带版本号（schema ' + SCHEMA + '），能装回来。文字报告是给人看的，能贴进简历，但装不回来。</p>' +
       '</div></div></aside></div>';
     $("#view-data").innerHTML = html;
   }
@@ -608,7 +612,7 @@ function mark(lv, cls) {
     a.download = "机械工程师工作台-进度-" + todayISO() + ".json";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-    flash("已导出。把文件放到网盘或 U 盘，别只留在这台电脑上。");
+    flash("存好了。把文件放到网盘或 U 盘，别只留在这台电脑上。");
     refresh();
   }
 
@@ -637,25 +641,25 @@ function mark(lv, cls) {
         if (!p || !p.items) throw new Error("文件里没有进度数据");
         mergeState(p);
         save();
-        flash("导入完成。当前共 " + state.gates.length + " 次闸门记录、 " + state.evidence.length + " 条证据。");
+    flash("装回来了。现在有 " + state.gates.length + " 次练习记录、" + state.evidence.length + " 个作品。");
         refresh();
-      } catch (e) { flash("导入失败：" + e.message); }
+    } catch (e) { flash("装不回来：" + e.message); }
     };
     fr.readAsText(file);
   }
 
   function buildMdReport() {
     var lines = [];
-    lines.push("# 机械工程师工作台 · 学习报告");
+    lines.push("# 机械工程师工作台 · 我的学习记录");
     lines.push("");
     lines.push("- 生成日期：" + todayISO());
     lines.push("- 起始日期：" + state.settings.startDate);
-    lines.push("- 闸门练习次数：" + state.gates.length + "（判断分歧 " + state.gates.filter(function (g) { return g.verdict === "diff"; }).length + " 次）");
-    lines.push("- 证据数：" + state.evidence.length);
+    lines.push("- 练习次数：" + state.gates.length + "（其中和 AI 对不上 " + state.gates.filter(function (g) { return g.verdict === "diff"; }).length + " 次）");
+    lines.push("- 作品数：" + state.evidence.length);
     lines.push("");
-    lines.push("## 等级总览");
+    lines.push("## 我的等级");
     lines.push("");
-    lines.push("| 模块 | 知识点 | 等级 | 名称 | 下次复习 | 证据 | 分歧 |");
+    lines.push("| 模块 | 编号与内容 | 等级 | 说明 | 下次复习 | 作品 | 对不上 |");
     lines.push("|---|---|---|---|---|---|---|");
     ALL.forEach(function (it) {
       var r = state.items[it.id];
@@ -663,23 +667,23 @@ function mark(lv, cls) {
       lines.push("| " + it._mod.name + " | " + it.id + " " + it.name + " | " + r.lv + " | " + lvName(r.lv) + " | " + (r.due || "—") + " | " + evidenceFor(it.id).length + " | " + diffCount(it.id) + " |");
     });
     lines.push("");
-    lines.push("## 证据清单");
+    lines.push("## 作品清单");
     lines.push("");
     state.evidence.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (e) {
       lines.push("### " + e.title + "（" + e.date + " · " + e.kind + "）");
       if (e.desc) lines.push("", e.desc);
-      if ((e.itemIds || []).length) lines.push("", "关联：" + e.itemIds.join("、"));
+    if ((e.itemIds || []).length) lines.push("", "对应：" + e.itemIds.join("、"));
       lines.push("");
     });
-    lines.push("## 判断分歧记录");
+    lines.push("## 和 AI 对不上的地方");
     lines.push("");
     var diffs = state.gates.filter(function (g) { return g.verdict !== "same"; });
-    if (!diffs.length) lines.push("（暂无）");
+    if (!diffs.length) lines.push("（暂时没有）");
     diffs.forEach(function (g) {
       var it = BY_ID[g.itemId] || { name: g.itemId, id: g.itemId };
-      lines.push("- " + g.at.slice(0, 10) + " · " + it.id + " " + it.name + " · " + (g.verdict === "diff" ? "明显不一致" : "部分一致"));
-      if (g.note) lines.push("  - 分歧点：" + g.note);
-      if (g.answer) lines.push("  - 当时我的判断：" + g.answer.replace(/\n/g, " "));
+      lines.push("- " + g.at.slice(0, 10) + " · " + it.id + " " + it.name + " · " + (g.verdict === "diff" ? "差得比较远" : "对了一半"));
+      if (g.note) lines.push("  - 哪里对不上：" + g.note);
+      if (g.answer) lines.push("  - 我当时写的：" + g.answer.replace(/\n/g, " "));
     });
     return lines.join("\n");
   }
@@ -691,7 +695,7 @@ function mark(lv, cls) {
     a.download = "机械工程师工作台-报告-" + todayISO() + ".md";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-    flash("报告已导出，可以直接贴进简历或存档。");
+    flash("报告存好了，可以直接贴进简历。");
   }
 
   /* ---------- 提示 ---------- */
@@ -773,8 +777,8 @@ function mark(lv, cls) {
     var d = new Date();
     $("#metaDate").textContent = "今天 " + todayISO();
     var activeDays = Object.keys(state.done).length;
-    $("#metaDays").textContent = "练习过的知识点 " + activeDays + " 个";
-    $("#metaStore").textContent = "数据：本机浏览器";
+    $("#metaDays").textContent = "练过 " + activeDays + " 条";
+    $("#metaStore").textContent = "进度只在本机浏览器";
   }
 
   /* ---------- 事件 ---------- */
@@ -814,8 +818,8 @@ function mark(lv, cls) {
     }
     if (act === "copy") {
       var txt = b.dataset.copy;
-      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { flash("提示词已复制。"); }, function () { flash("复制失败，请手动选中。"); });
-      else flash("这个浏览器不支持自动复制，请手动选中。");
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { flash("复制好了。"); }, function () { flash("没复制成功，手动选中吧。"); });
+      else flash("这个浏览器不给自动复制，手动选中吧。");
       return;
     }
     if (act === "set-lv") { setLevel(id); return; }
@@ -830,14 +834,14 @@ function mark(lv, cls) {
     }
     if (act === "add-ev") {
       var title = $("#ev-title").value.trim();
-      if (!title) { flash("先写清这份证据是什么。"); $("#ev-title").focus(); return; }
+      if (!title) { flash("先写清楚这是什么。"); $("#ev-title").focus(); return; }
       var sel2 = $("#ev-items");
       var ids = Array.prototype.filter.call(sel2.options, function (o) { return o.selected; }).map(function (o) { return o.value; });
       state.evidence.push({
         id: "e" + Date.now(), title: title, kind: $("#ev-kind").value,
         date: $("#ev-date").value || todayISO(), desc: $("#ev-desc").value.trim(), itemIds: ids
       });
-      save(); flash("证据已保存，共 " + state.evidence.length + " 条。"); refresh();
+      save(); flash("存好了，现在有 " + state.evidence.length + " 个作品。"); refresh();
       return;
     }
     if (act === "del-evidence") {
@@ -853,8 +857,8 @@ function mark(lv, cls) {
       save(); flash("已保存。"); refresh(); return;
     }
     if (act === "reset") {
-      if (confirm("清空全部进度、证据与闸门记录？此操作不可恢复。建议先导出。")) {
-        state = blankState(); save(); flash("已清空。"); refresh();
+      if (confirm("清空所有进度、作品和练习记录？删了就找不回来。建议先存一份。")) {
+        state = blankState(); save(); flash("清空了。"); refresh();
       }
       return;
     }
@@ -900,7 +904,7 @@ function mark(lv, cls) {
       state.settings.startDate = todayISO();
       save();
       setTimeout(function () {
-        flash("第一次打开：先把结构看一遍，然后从「今日」开始第一道手动闸门。数据只在这台电脑上，记得定期导出。");
+      flash("第一次打开：先随便看看，然后去「今日」做第一道题。进度只存在这个浏览器里，记得定期存一份。");
       }, 500);
     }
     var want = (location.search.match(/[?&]view=([a-z]+)/) || [])[1];
@@ -1067,7 +1071,11 @@ function mark(lv, cls) {
       show("route");
       ok("路线视图渲染", $("#view-route").innerHTML.indexOf("24 个月") > 0);
       show("data");
-      ok("数据视图渲染", $("#view-data").innerHTML.indexOf("导入") > 0);
+      // 断言不要绑死具体文案：查控件是否存在，文案怎么改都不会误报。
+      ok("数据视图渲染",
+        Boolean($('#view-data [data-act="export"]')) &&
+        Boolean($('#view-data [data-act="import"]')) &&
+        Boolean($('#view-data #importMode')));
       show("today");
 
       state = blankState(); save();
