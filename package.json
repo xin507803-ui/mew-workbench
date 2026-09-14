@@ -1,0 +1,13 @@
+{
+  "name": "mechanical-engineer-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "description": "机械工程师工作台：把毕业生练到资深的设计与工艺能力训练台",
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

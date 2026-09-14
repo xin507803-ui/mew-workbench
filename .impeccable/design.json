@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-14T09:00:00Z",
+  "title": "Design System: 机械工程师工作台",
+  "extensions": {
+    "colorMeta": {
+      "signal-vermilion": {
+        "role": "primary",
+        "displayName": "Signal Vermilion 验收朱红",
+        "canonical": "#A8331E",
+        "tonalRamp": ["#42130A", "#6E1F11", "#9A2C18", "#C6391F", "#E05239", "#E77965", "#F1B2A7", "#FCECE9"]
+      },
+      "vermilion-wash": {
+        "role": "primary",
+        "displayName": "Vermilion Wash 朱红淡洗",
+        "canonical": "#F0DBD5",
+        "tonalRamp": ["#3A1B12", "#612D1E", "#883F2A", "#AF5136", "#C96B50", "#D58C77", "#E7BDB1", "#F9EFEC"]
+      },
+      "catalog-paper": {
+        "role": "neutral",
+        "displayName": "Catalog Paper 手册纸",
+        "canonical": "#F3F2EE",
+        "tonalRamp": ["#302C1C", "#504A2F", "#706742", "#908455", "#AA9E6F", "#BDB38F", "#D9D4BF", "#F6F4EF"]
+      },
+      "catalog-paper-shade": {
+        "role": "neutral",
+        "displayName": "Catalog Paper Shade 手册纸阴影层",
+        "canonical": "#E9E7E1",
+        "tonalRamp": ["#2F2B1D", "#4F4731", "#6F6444", "#8E8057", "#A89A71", "#BBB090", "#D8D2C0", "#F5F4EF"]
+      },
+      "punched-band": {
+        "role": "neutral",
+        "displayName": "Punched Band 穿孔带",
+        "canonical": "#DCD9D2",
+        "tonalRamp": ["#2E2A1E", "#4D4532", "#6C6146", "#8B7D5A", "#A59674", "#B9AD93", "#D7D0C1", "#F5F3F0"]
+      },
+      "press-black": {
+        "role": "neutral",
+        "displayName": "Press Black 印刷黑",
+        "canonical": "#15181B",
+        "tonalRamp": ["#1E262E", "#32404D", "#46596C", "#5A738B", "#748CA5", "#93A6B9", "#C1CCD7", "#F0F2F5"]
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Ink Secondary 次级墨",
+        "canonical": "#434A51",
+        "tonalRamp": ["#1F262D", "#34404C", "#49596A", "#5E7388", "#778CA1", "#95A6B6", "#C3CCD5", "#F0F2F5"]
+      },
+      "ink-tertiary": {
+        "role": "neutral",
+        "displayName": "Ink Tertiary 三级墨",
+        "canonical": "#575E65",
+        "tonalRamp": ["#20262D", "#35404A", "#4A5968", "#607386", "#798C9F", "#97A6B5", "#C3CCD5", "#F0F2F4"]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline 细线",
+        "canonical": "#C7C4BC",
+        "tonalRamp": ["#2D291F", "#4B4534", "#696149", "#877C5E", "#A19678", "#B6AD96", "#D5D0C3", "#F5F3F0"]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong 粗线",
+        "canonical": "#A9A69E",
+        "tonalRamp": ["#2C2920", "#4A4436", "#67604B", "#847B61", "#9E947B", "#B4AC98", "#D4D0C4", "#F4F3F0"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "只有刊头的工作台名。" },
+      "headline": { "displayName": "Headline", "purpose": "视图标题。" },
+      "title": { "displayName": "Title", "purpose": "段落级小标题。" },
+      "title-sm": { "displayName": "Title Small", "purpose": "知识点名、面板标题、任务标题。" },
+      "body": { "displayName": "Body", "purpose": "正文与说明，≤68ch；表格可密至 120ch+。" },
+      "body-sm": { "displayName": "Body Small", "purpose": "封条文案、闸门说明、表格正文。" },
+      "label": { "displayName": "Label", "purpose": "字段标签、按钮、状态词。" },
+      "data": { "displayName": "Data", "purpose": "编号、日期、等级数字、统计值；只用等宽 + tabular-nums。" },
+      "data-sm": { "displayName": "Data Small", "purpose": "表头与最密的表内元信息。" }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-state", "value": "cubic-bezier(.16,.84,.28,1)", "purpose": "全部状态过渡的缓动：悬停、拆封、导轨标记移动。" },
+      { "name": "duration-state", "value": "200ms", "purpose": "唯一的过渡时长。产品界面不编排入场动画。" }
+    ],
+    "breakpoints": [
+      { "name": "collapse-cols", "value": "1080px" },
+      { "name": "collapse-row", "value": "820px" },
+      { "name": "collapse-form", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "每个操作区只有一个的主操作，墨底纸字。",
+      "html": "<button class=\"ds-btn-primary\">开始手动闸门</button>",
+      "css": ".ds-btn-primary{appearance:none;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:7px 13px;font-size:13px;font-weight:550;letter-spacing:-.01em;border-radius:2px;transition:background 200ms cubic-bezier(.16,.84,.28,1),color 200ms cubic-bezier(.16,.84,.28,1),transform 200ms cubic-bezier(.16,.84,.28,1);}.ds-btn-primary:hover{background:var(--seal);border-color:var(--seal);color:var(--paper);}.ds-btn-primary:active{transform:translateY(1px);}.ds-btn-primary:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "同形状的次要动作，边框降一级。",
+      "html": "<button class=\"ds-btn\">查看知识点</button>",
+      "css": ".ds-btn{appearance:none;cursor:pointer;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:7px 13px;font-size:13px;font-weight:550;border-radius:2px;transition:background 200ms cubic-bezier(.16,.84,.28,1),color 200ms cubic-bezier(.16,.84,.28,1);}.ds-btn:hover{background:var(--ink);color:var(--paper);}.ds-btn.ghost{border-color:var(--rule-2);font-weight:500;}.ds-btn:disabled{border-color:var(--rule);color:var(--ink-3);background:var(--paper-2);cursor:not-allowed;}.ds-btn:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}"
+    },
+    {
+      "name": "Seal Button",
+      "kind": "button",
+      "refersTo": "button-seal",
+      "description": "朱红描边，只给不可逆操作。",
+      "html": "<button class=\"ds-btn-seal\">清空全部进度</button>",
+      "css": ".ds-btn-seal{appearance:none;cursor:pointer;border:1px solid var(--seal);background:var(--paper);color:var(--seal);padding:7px 13px;font-size:13px;font-weight:550;border-radius:2px;transition:background 200ms cubic-bezier(.16,.84,.28,1),color 200ms cubic-bezier(.16,.84,.28,1);}.ds-btn-seal:hover{background:var(--seal);color:var(--paper);}.ds-btn-seal:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "这里是面板而不是卡片：1px 边框 + 纸色标题条，无阴影。",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-h\"><h3>进度概览</h3><span class=\"ds-panel-code\">实时</span></header><div class=\"ds-panel-b\"><div class=\"ds-stat\"><dt>总等级</dt><dd>128 / 640</dd></div></div></section>",
+      "css": ".ds-panel{border:1px solid var(--rule-2);background:var(--paper);border-radius:2px;}.ds-panel-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border-bottom:1px solid var(--rule);background:var(--paper-2);}.ds-panel-h h3{margin:0;font-size:13.5px;font-weight:650;letter-spacing:.01em;color:var(--ink);}.ds-panel-code{font-family:'JetBrains Mono',Consolas,monospace;font-size:11.5px;color:var(--ink-2);letter-spacing:.03em;}.ds-panel-b{padding:16px;}.ds-stat{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--rule);}.ds-stat:first-child{border-top:0;}.ds-stat dt{font-size:12.5px;color:var(--ink-2);}.ds-stat dd{margin:0;font-family:'JetBrains Mono',Consolas,monospace;font-size:17px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;}"
+    },
+    {
+      "name": "State Mark",
+      "kind": "custom",
+      "refersTo": "state-mark",
+      "description": "五段线形等级记号。状态不靠颜色，色盲也必须读得出来。",
+      "html": "<span class=\"ds-mark\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"next\"></i><i></i></span><span class=\"ds-mark-num\">3</span>",
+      "css": ".ds-mark{display:inline-flex;align-items:center;gap:4px;height:14px;}.ds-mark i{display:block;width:14px;height:2px;background:var(--paper-3);}.ds-mark i.on{background:var(--ink);height:3px;}.ds-mark i.next{background:none;height:0;border-top:2px dashed var(--ink-2);}.ds-mark-num{font-family:'JetBrains Mono',Consolas,monospace;font-size:12.5px;color:var(--ink-2);margin-left:6px;font-variant-numeric:tabular-nums;}"
+    },
+    {
+      "name": "Manual Gate",
+      "kind": "custom",
+      "refersTo": "gate-seal",
+      "description": "全站最重要的组件：穿孔封条压住 AI 对照，输入满 20 字才可拆封。",
+      "html": "<div class=\"ds-gate\"><div class=\"ds-gate-h\"><strong>手动闸门 · 先自己判断，再看 AI</strong><span class=\"ds-gate-sealmark\">历史 3 次 · 分歧 2 次</span></div><div class=\"ds-gate-q\"><p class=\"q\">三层装配，每层厚度 10±0.1mm，要求总高 30±0.15mm。先自己用 worst-case 算。</p><p class=\"hint\">不许查资料、不许问 AI。</p></div><div class=\"ds-seal\"><div class=\"ds-seal-cover\"><p>AI 对照被封在这里。先写下你的判断。</p></div></div></div>",
+      "css": ".ds-gate{border:1px solid var(--ink);border-radius:2px;background:var(--paper);}.ds-gate-h{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ink);background:var(--paper-2);}.ds-gate-h strong{font-size:12.5px;letter-spacing:.02em;color:var(--ink);}.ds-gate-sealmark{margin-left:auto;font-family:'JetBrains Mono',Consolas,monospace;font-size:11px;color:var(--seal);letter-spacing:.08em;}.ds-gate-q{padding:14px;font-size:14px;line-height:1.65;color:var(--ink);}.ds-gate-q .q{font-weight:600;margin:0;}.ds-gate-q .hint{color:var(--ink-2);font-size:13px;margin-top:6px;}.ds-seal{border-top:1px solid var(--ink);}.ds-seal-cover{position:relative;background:var(--paper-3);border-bottom:1px solid var(--ink);padding:26px 14px;overflow:hidden;transition:opacity 200ms cubic-bezier(.16,.84,.28,1),transform 200ms cubic-bezier(.16,.84,.28,1),max-height 200ms cubic-bezier(.16,.84,.28,1);max-height:200px;}.ds-seal-cover::after{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px dashed var(--ink-2);opacity:.5;}.ds-seal-cover p{position:relative;z-index:1;font-size:13px;color:var(--ink-2);text-align:center;margin:0;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "闸门里的判断输入与所有表单字段。",
+      "html": "<label class=\"ds-field\"><span>你的判断</span><textarea placeholder=\"先写结论，再写依据，最后写你不确定的地方。\"></textarea></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;}.ds-field span{font-size:12.5px;font-weight:600;color:var(--ink-2);}.ds-field textarea,.ds-field input{border:1px solid var(--rule-2);background:var(--paper);border-radius:2px;padding:10px 12px;font-size:14px;line-height:1.6;color:var(--ink);min-height:104px;resize:vertical;width:100%;}.ds-field textarea::placeholder{color:var(--ink-3);}.ds-field textarea:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "知识点编号引用，等宽小字，只读。",
+      "html": "<span class=\"ds-chip\">DES-014</span>",
+      "css": ".ds-chip{font-family:'JetBrains Mono',Consolas,monospace;font-size:10.5px;color:var(--ink-2);border:1px solid var(--rule-2);border-radius:2px;padding:1px 6px;letter-spacing:.03em;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Selection Catalog（选型手册）",
+    "overview": "这个工作台不是仪表盘，是一本摊开的工业选型手册：MISUMI、SKF、THK 那种纸上印出来的东西。密排的规格表、页边的零件号、一条贯穿全书的索引、以及印在纸上的规则线。用户是机械专业的学生，这类手册是他每天真的在翻的东西，所以界面不需要向他解释自己在做什么——密度、编号和规则线已经说明了一切。 纸面是唯一的底色层，深度只由纸的三种调子和 1px 规则线表达，没有一处阴影。强调色只有一个：验收朱红 #A8331E，它只出现在三种场合——判断分歧、逾期、不可逆的危险操作，以及那条封住 AI 答案的穿孔封条。其余全部靠线形区分：实线已达标、虚线待复习、点线有分歧、双线达 5 级、空白未开始。 整个界面围绕一个动作组织：手动闸门。先写下自己的判断，才允许拆开封条看 AI 的对照。因此页面上最重要的视觉元素不是任何一块数据，而是那条压在 AI 答案上的穿孔带——它必须是可见的、可被拆开的、拆开后确实消失的。",
+    "keyCharacteristics": [
+      "纸面、细规则线、无阴影、无圆角堆叠",
+      "单一强调色，占比极低；状态一律用线形承载",
+      "等宽字体只用于零件号、测量值、日期这类真实数据，不做装饰",
+      "密排表格是主要版面，密度是特征不是缺点",
+      "顶部一条 24 个月导轨，当前位置是一枚朱红三角"
+    ],
+    "rules": [
+      { "name": "The Line-Form Rule", "body": "状态永远不靠色相区分。已达标是实线，待复习是虚线，有分歧是朱红点线，达 5 级是双线，未开始是空白。任何新的状态都必须先问「它长什么样」，而不是「它是什么颜色」。", "section": "colors" },
+      { "name": "The One Red Rule", "body": "验收朱红在任何一个屏幕上的占比不超过 10%。它标记的是需要你立刻注意的东西，不是装饰。", "section": "colors" },
+      { "name": "The Three Tones Rule", "body": "深度只用三层纸色加规则线表达。不引入第四层灰，不引入阴影。", "section": "colors" },
+      { "name": "The Mono-For-Data Rule", "body": "等宽字体只能出现在真实的编码、测量值、日期与统计数字上。不要用它做标签、标题或装饰。", "section": "typography" },
+      { "name": "The Fixed-Scale Rule", "body": "字号固定，不用流体缩放。这是每天盯着看很多遍的工具，一致性比戏剧性重要。", "section": "typography" },
+      { "name": "The Eight-Step Rule", "body": "版面只允许 11 / 12 / 13 / 14 / 15 / 17 / 20 / 23 这八级字号。加一级新尺寸之前，先试字重和字距。", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "表面静止时是平的。任何深度都必须来自纸色分层或规则线，不允许 shadow。", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 用线形表达状态：实线 / 虚线 / 点线 / 双线 / 空白，先于任何颜色决定。",
+      "Do 把朱红留给判断分歧、逾期、不可逆操作和封条四处，占比压在 10% 以内。",
+      "Do 用 Ink Tertiary（#575E65）作为最浅的文字；它必须在全部三层纸色上都过 4.5:1，这是下限。",
+      "Do 让编号、日期、等级数字用等宽加 tabular-nums 对齐，这样一列数字能竖着扫。",
+      "Do 保持 2px 圆角与 1px 边框这套唯一的形状语言，包括禁用态。",
+      "Do 让 0 级保持全空：虚线只表示「待复习」，不表示「还没开始」。",
+      "Do 让密集的表格横着滚，而不是砍列——列之间的对齐关系就是信息。"
+    ],
+    "donts": [
+      "Don't 引入阴影、玻璃模糊、渐变文字或任何发光；深度只有三层纸色和规则线。",
+      "Don't 用色相区分状态。色盲用户必须能读出全部状态。",
+      "Don't 把内容做成「图标 + 标题 + 正文」的同尺寸卡片阵列；这里的容器是规格表与列表行。",
+      "Don't 在标题上方加小标签（kicker）。标题自己承担自己的重量。",
+      "Don't 用 emoji 或 Unicode 字符当图标。本系统不用图标，用文字与线形。",
+      "Don't 把等宽字体当作「技术感」装饰用在标签或标题上。",
+      "Don't 用胶囊形按钮或 12px 以上的圆角。"
+    ]
+  }
+}

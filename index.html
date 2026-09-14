@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机械工程师工作台</title>
+<style>
+/* ============================================================
+   机械工程师工作台 — 视觉世界：工业选型目录
+   纸面、细规则线、零件号、页码索引、单一强调色（朱红）。
+   状态用线形编码，不用颜色：实线在学 / 虚线待复习 / 短划逾期
+   / 双线已达标 / 空白未开始。
+   ============================================================ */
+
+:root{
+  --paper:#F3F2EE;
+  --paper-2:#E9E7E1;
+  --paper-3:#DCD9D2;
+  --ink:#15181B;
+  --ink-2:#434A51;
+  --ink-3:#575E65;
+  --rule:#C7C4BC;
+  --rule-2:#A9A69E;
+  --seal:#A8331E;
+  --seal-2:#F0DBD5;
+  --sans:"Source Han Sans SC","Noto Sans SC","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --mono:"JetBrains Mono","Cascadia Mono",Consolas,"SFMono-Regular",ui-monospace,monospace;
+  --step:8px;
+  --dur:200ms;
+  --ease:cubic-bezier(.16,.84,.28,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  font-feature-settings:"tnum" 1;
+}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+/* 视图容器为了键盘可达需要能接收焦点，但它不是控件，
+   整块内容被 2px 朱红轮廓套住既难看，也违反"朱红占比极低"的规则。
+   这里只抑制容器自身的轮廓，其余所有控件照常显示焦点环。 */
+.view:focus,.view:focus-visible{outline:none}
+::selection{background:var(--seal);color:var(--paper)}
+*{scrollbar-color:var(--rule-2) var(--paper-2);scrollbar-width:thin}
+
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.02em;line-height:1.25}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+button,input,select,textarea{font:inherit;color:inherit}
+
+.skip{
+  position:absolute;left:-9999px;top:0;z-index:50;
+  background:var(--ink);color:var(--paper);padding:10px 16px;
+}
+.skip:focus{left:8px;top:8px}
+
+/* ---------- 刊头 ---------- */
+.head{
+  border-bottom:1px solid var(--ink);
+  background:var(--paper);
+}
+.head-inner{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+  max-width:1500px;margin:0 auto;padding:18px 24px 14px;
+}
+.wordmark{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.wordmark b{font-size:23px;font-weight:700;letter-spacing:-.03em}
+.wordmark span{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink-3);text-transform:uppercase;
+}
+.head-meta{
+  font-family:var(--mono);font-size:12px;color:var(--ink-2);
+  display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
+}
+.head-meta b{font-weight:500;color:var(--ink)}
+
+/* ---------- 视图切换 ---------- */
+.tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--rule);
+  max-width:1500px;margin:0 auto;padding:0 24px;
+  overflow-x:auto;
+}
+.tabs button{
+  appearance:none;background:none;border:0;border-bottom:2px solid transparent;
+  padding:11px 18px 9px;margin-bottom:-1px;
+  color:var(--ink-2);font-size:15px;font-weight:550;letter-spacing:-.01em;
+  cursor:pointer;white-space:nowrap;
+  transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.tabs button:hover{color:var(--ink);background:var(--paper-2)}
+.tabs button[aria-selected="true"]{
+  color:var(--ink);font-weight:700;border-bottom-color:var(--ink);
+}
+.tabs button .cnt{
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-left:7px;
+}
+
+/* ---------- 路线导轨 ---------- */
+.rail{
+  position:relative;max-width:1500px;margin:0 auto;
+  padding:20px 24px 8px;
+}
+.rail-track{
+  position:relative;height:34px;
+  border-top:1px solid var(--rule-2);
+}
+.rail-tick{
+  position:absolute;top:-1px;width:1px;height:6px;background:var(--rule-2);
+}
+.rail-tick.major{height:11px;background:var(--ink-2)}
+.rail-stage{
+  position:absolute;top:-1px;height:2px;background:var(--ink);
+  transform:scaleY(1);transform-origin:top;
+}
+.rail-marker{
+  position:absolute;top:-5px;width:0;height:0;
+  border-left:5px solid transparent;border-right:5px solid transparent;
+  border-top:8px solid var(--seal);
+  transition:left var(--dur) var(--ease);
+}
+.rail-labels{
+  display:flex;max-width:1500px;margin:0 auto;padding:0 24px 16px;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em;
+}
+.rail-labels li{flex:1;padding-right:10px}
+.rail-labels li b{display:block;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink-2)}
+
+/* ---------- 版面 ---------- */
+.sheet{max-width:1500px;margin:0 auto;padding:0 24px 96px}
+.view[hidden]{display:none}
+
+.view-head{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  flex-wrap:wrap;padding:26px 0 14px;border-bottom:1px solid var(--ink);
+}
+.view-head h2{font-size:20px;font-weight:700}
+.view-head .note{font-size:13px;color:var(--ink-2);max-width:62ch}
+.view-head .note{text-align:left}
+
+.lede{font-size:14px;color:var(--ink-2);max-width:68ch;padding:14px 0 0}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;align-items:start}
+@media (max-width:1080px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:720px){
+  /* 窄屏上先出标题、后出元信息，避免日期压在应用名上面 */
+  .head-inner{flex-direction:column;align-items:flex-start;gap:12px}
+}
+
+/* ---------- 清单 ---------- */
+.list{border-top:1px solid var(--rule)}
+.row{
+  display:grid;grid-template-columns:96px minmax(0,1fr) 132px 116px;
+  gap:16px;align-items:baseline;
+  padding:14px 4px;border-bottom:1px solid var(--rule);
+}
+@media (max-width:820px){
+  .row{grid-template-columns:minmax(0,1fr) auto;row-gap:6px}
+  .row .code{grid-column:1/-1}
+}
+.row:hover{background:var(--paper-2)}
+.code{font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:.03em}
+.row h3{font-size:15px;font-weight:600}
+.row .sub{font-size:13px;color:var(--ink-2);margin-top:3px}
+.row .en{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.row .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+/* ---------- 状态线形 ---------- */
+.mark{display:inline-flex;align-items:center;gap:4px;height:14px}
+.mark i{display:block;position:relative;width:14px;height:2px;background:var(--paper-3);transition:background var(--dur) var(--ease)}
+.mark i.on{background:var(--ink);height:3px}
+.mark i.next{background:none;height:0;border-top:2px dashed var(--ink-2)}
+.mark.lv5 i.on::after{content:"";position:absolute;left:0;right:0;top:5px;height:2px;background:var(--ink)}
+.mark i.due{background:none;height:0;border-top:2px dotted var(--seal)}
+
+.tagline{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
+.tagline u{display:block;width:20px;height:0;text-decoration:none}
+.tagline u.solid{border-top:2px solid var(--ink)}
+.tagline u.dash{border-top:2px dashed var(--ink-2)}
+.tagline u.short{border-top:2px dotted var(--seal)}
+.tagline u.dbl{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);height:4px}
+.tagline u.blank{border-top:2px solid var(--paper-3)}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  appearance:none;cursor:pointer;
+  border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+  padding:7px 13px;font-size:13px;font-weight:550;letter-spacing:-.01em;
+  border-radius:2px;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{border-color:var(--rule);color:var(--ink-3);background:var(--paper-2);cursor:not-allowed}
+.btn[disabled]:hover{background:var(--paper-2);color:var(--ink-3)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary:hover{background:var(--seal);border-color:var(--seal)}
+.btn.ghost{border-color:var(--rule-2);font-weight:500}
+.btn.seal{border-color:var(--seal);color:var(--seal);background:var(--paper)}
+.btn.seal:hover{background:var(--seal);color:var(--paper)}
+.btn.tiny{padding:4px 9px;font-size:12px}
+
+/* ---------- 面板 ---------- */
+.panel{
+  border:1px solid var(--rule-2);background:var(--paper);
+  border-radius:2px;
+}
+.panel-h{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 16px;border-bottom:1px solid var(--rule);
+  background:var(--paper-2);
+}
+.panel-h h3{font-size:14px;font-weight:650;letter-spacing:.01em}
+.panel-h .code{color:var(--ink-2)}
+.panel-b{padding:16px}
+.panel + .panel{margin-top:24px}
+
+.stat{border-top:1px solid var(--rule);padding:11px 0;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.stat:first-child{border-top:0}
+.stat dt{font-size:13px;color:var(--ink-2)}
+.stat dd{margin:0;font-family:var(--mono);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* ---------- 今日任务 ---------- */
+.task{border-bottom:1px solid var(--rule);padding:16px 4px}
+.task:first-child{border-top:1px solid var(--rule)}
+.task-head{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.task-head h3{font-size:15px;font-weight:650}
+.task-head .kind{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  color:var(--ink-2);border:1px solid var(--rule-2);padding:1px 6px;border-radius:2px;
+}
+.task.open{background:var(--paper-2);margin:0 -8px;padding:16px 12px}
+
+/* ---------- 手动闸门 ---------- */
+.gate{margin-top:16px;border:1px solid var(--ink);border-radius:2px;background:var(--paper)}
+.gate-h{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ink);background:var(--paper-2)}
+.gate-h strong{font-size:13px;letter-spacing:.02em}
+.gate-h .sealmark{
+  margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--seal);letter-spacing:.08em;
+}
+.gate-q{padding:14px;font-size:14px;line-height:1.65}
+.gate-q .q{font-weight:600}
+.gate-q .hint{color:var(--ink-2);font-size:13px;margin-top:6px}
+
+.gate-input{padding:0 14px 14px}
+.gate-input textarea{
+  width:100%;min-height:104px;resize:vertical;
+  border:1px solid var(--rule-2);background:var(--paper);
+  padding:10px 12px;font-size:14px;line-height:1.6;border-radius:2px;
+}
+.gate-input textarea::placeholder{color:var(--ink-3)}
+.gate-actions{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.gate-actions .why{font-size:12px;color:var(--ink-2)}
+
+/* 封条：AI 对照被压在穿孔带下，拆封是一个动作 */
+.seal-wrap{position:relative;border-top:1px solid var(--ink)}
+.seal-cover{
+  position:relative;z-index:2;
+  background:var(--paper-3);
+  border-bottom:1px solid var(--ink);
+  padding:26px 14px;
+  overflow:hidden;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),max-height var(--dur) var(--ease);
+  max-height:200px;
+}
+.seal-cover::after{
+  content:"";position:absolute;left:0;right:0;top:50%;
+  border-top:2px dashed var(--ink-2);opacity:.5;
+}
+.seal-cover p{position:relative;z-index:1;font-size:13px;color:var(--ink-2);text-align:center}
+.seal-wrap.open .seal-cover{opacity:0;transform:translateY(-8px);max-height:0;padding-top:0;padding-bottom:0;border-bottom-width:0}
+.seal-body{padding:14px;display:none}
+.seal-wrap.open .seal-body{display:block}
+
+.compare{width:100%;border-collapse:collapse;font-size:14px}
+.compare th{
+  text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--ink-2);
+  padding:6px 10px 6px 0;border-bottom:1px solid var(--rule-2);vertical-align:top;
+}
+.compare td{padding:8px 10px 8px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.compare td:first-child{width:104px;font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.compare pre{
+  margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;
+}
+
+.verdict{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.verdict .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.verdict .btn.diff[aria-pressed="true"]{background:var(--seal);border-color:var(--seal);color:var(--paper)}
+
+/* ---------- 表格 ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule-2)}
+table.grid{border-collapse:collapse;width:100%;min-width:860px;font-size:14px}
+table.grid thead th{
+  position:sticky;top:0;z-index:1;
+  background:var(--paper-2);border-bottom:1px solid var(--ink);
+  text-align:left;font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-2);
+  padding:9px 12px;white-space:nowrap;
+}
+table.grid td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:middle}
+table.grid tbody tr:hover{background:var(--paper-2)}
+table.grid td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink-2);white-space:nowrap}
+table.grid td.act{text-align:right;white-space:nowrap}
+table.grid tr.mod > th{
+  background:var(--paper-3);border-bottom:1px solid var(--ink);
+  text-align:left;padding:8px 12px;font-size:13px;letter-spacing:.02em;
+}
+table.grid tr.mod > th small{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-left:10px;font-weight:400;letter-spacing:.04em}
+
+/* ---------- 表单 ---------- */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field input,.field select,.field textarea{
+  border:1px solid var(--rule-2);background:var(--paper);border-radius:2px;
+  padding:8px 10px;font-size:14px;width:100%;
+}
+.field textarea{min-height:78px;resize:vertical}
+.field .help{font-size:12px;color:var(--ink-2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.field-row{grid-template-columns:1fr}}
+
+/* ---------- 通知 ---------- */
+.notice{
+  border:1px solid var(--seal);background:var(--seal-2);
+  padding:11px 14px;border-radius:2px;font-size:14px;
+  display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+}
+.notice .btn{border-color:var(--seal);color:var(--seal);background:transparent}
+.notice .btn:hover{background:var(--seal);color:var(--paper)}
+.quiet{border:1px solid var(--rule-2);background:var(--paper-2);padding:11px 14px;border-radius:2px;font-size:14px;color:var(--ink-2)}
+
+/* ---------- 阶段卡（路线视图） ---------- */
+.stage{border-top:1px solid var(--ink);padding:18px 0 22px}
+.stage-h{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.stage-h h3{font-size:17px}
+.stage-h .span{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.stage-h .state{margin-left:auto;font-size:13px;color:var(--ink-2)}
+.stage-goal{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;margin-top:14px}
+.stage-goal > div{border:1px solid var(--rule);padding:12px 14px;margin:0 -1px -1px 0}
+.stage-goal h4{font-size:13px;letter-spacing:.04em;color:var(--ink-2);font-weight:600;margin-bottom:8px}
+.stage-goal li{font-size:14px;padding:3px 0;padding-left:16px;position:relative}
+.stage-goal li::before{content:"";position:absolute;left:0;top:11px;width:8px;height:2px;background:var(--ink-2)}
+.stage-goal li.done::before{background:var(--ink);box-shadow:0 3px 0 -1px var(--ink)}
+
+/* ---------- 证据 ---------- */
+.ev{border-bottom:1px solid var(--rule);padding:14px 4px}
+.ev:first-child{border-top:1px solid var(--rule)}
+.ev h3{font-size:15px;font-weight:600}
+.ev .meta{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:3px}
+.ev .desc{font-size:13px;color:var(--ink-2);margin-top:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{
+  font-family:var(--mono);font-size:11px;color:var(--ink-2);
+  border:1px solid var(--rule-2);border-radius:2px;padding:1px 6px;
+}
+
+.empty{border:1px dashed var(--rule-2);padding:26px 20px;border-radius:2px;background:var(--paper-2)}
+.empty h3{font-size:15px;margin-bottom:8px}
+.empty p{font-size:14px;color:var(--ink-2);max-width:60ch}
+.empty ol{margin-top:12px;font-size:14px;color:var(--ink-2);display:grid;gap:6px;counter-reset:s}
+.empty ol li{padding-left:22px;position:relative}
+.empty ol li::before{
+  counter-increment:s;content:counter(s);
+  position:absolute;left:0;top:1px;font-family:var(--mono);font-size:11px;color:var(--ink-3);
+  border:1px solid var(--rule-2);width:15px;height:15px;line-height:13px;text-align:center;border-radius:2px;
+}
+
+/* ---------- 筛选 ---------- */
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 0}
+.filters select,.filters input{
+  border:1px solid var(--rule-2);background:var(--paper);padding:6px 9px;font-size:13px;border-radius:2px;
+}
+.filters label{font-size:13px;color:var(--ink-2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 0 0;font-size:12px;color:var(--ink-2)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:1ms !important;animation-duration:1ms !important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="head">
+  <div class="head-inner">
+    <div class="wordmark">
+      <b>机械工程师工作台</b>
+      <span>MEW-01 / 设计与工艺</span>
+    </div>
+    <div class="head-meta">
+      <span id="metaDate">—</span>
+      <span id="metaDays">—</span>
+      <span id="metaStore">—</span>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="工作台视图">
+    <button role="tab" id="tab-today" aria-controls="view-today" aria-selected="true" data-view="today">今日<span class="cnt" id="cntToday"></span></button>
+    <button role="tab" id="tab-matrix" aria-controls="view-matrix" aria-selected="false" data-view="matrix">能力矩阵<span class="cnt" id="cntMatrix"></span></button>
+    <button role="tab" id="tab-route" aria-controls="view-route" aria-selected="false" data-view="route">24 个月路线</button>
+    <button role="tab" id="tab-evidence" aria-controls="view-evidence" aria-selected="false" data-view="evidence">证据库<span class="cnt" id="cntEvidence"></span></button>
+    <button role="tab" id="tab-data" aria-controls="view-data" aria-selected="false" data-view="data">数据与备份</button>
+  </nav>
+</header>
+
+<div class="rail">
+  <div class="rail-track" id="railTrack" role="img" aria-label="24 个月路线进度"></div>
+</div>
+<ol class="rail-labels" id="railLabels"></ol>
+
+<main class="sheet" id="main">
+  <section class="view" id="view-today" role="tabpanel" aria-labelledby="tab-today" tabindex="-1"></section>
+  <section class="view" id="view-matrix" role="tabpanel" aria-labelledby="tab-matrix" tabindex="-1" hidden></section>
+  <section class="view" id="view-route" role="tabpanel" aria-labelledby="tab-route" tabindex="-1" hidden></section>
+  <section class="view" id="view-evidence" role="tabpanel" aria-labelledby="tab-evidence" tabindex="-1" hidden></section>
+  <section class="view" id="view-data" role="tabpanel" aria-labelledby="tab-data" tabindex="-1" hidden></section>
+</main>
+
+<script src="curriculum.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

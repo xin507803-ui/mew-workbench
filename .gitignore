@@ -1,0 +1,10 @@
+# 浏览器截图工具的临时配置目录（几 MB，不该进仓库）
+.impeccable/edge/
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 依赖（本项目零依赖，这一行是给以后准备的）
+node_modules/
